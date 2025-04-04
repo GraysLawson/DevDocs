@@ -53,45 +53,40 @@ services:
     restart: unless-stopped
 
   crawl4ai:
-    # IMPORTANT: Make sure you are using an image tag that supports GPU
-    # 'gpu-amd64' looks correct based on the name, assuming it exists and is built with CUDA support.
-    image: unclecode/crawl4ai:gpu-amd64
+    image: unclecode/crawl4ai:gpu-amd64 # Ensure this image supports GPU
     container_name: devdocs-crawl4ai
     ports:
       - "11235:11235"
     environment:
       - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-devdocs-demo-key}
-      - MAX_CONCURRENT_TASKS=5 # You might adjust this based on your GPU's capacity
+      - MAX_CONCURRENT_TASKS=5 # Adjust based on GPU
       - DISABLE_AUTH=false
-      # Add any GPU-specific environment variables if required by crawl4ai
+      # Add any specific environment variables needed for GPU use by crawl4ai
     volumes:
-      - /dev/shm:/dev/shm # Often useful for GPU workloads
+      - /dev/shm:/dev/shm
       - ./crawl_results:/app/crawl_results
     networks:
       - devdocs-network
     restart: unless-stopped
-    deploy:
+    deploy: # <-- This whole 'deploy' block is crucial for GPU access
       resources:
         limits:
-          memory: 4G # Keep existing memory limits
+          memory: 4G # Your existing limits
         reservations:
-          memory: 1G # Keep existing memory reservations
-          devices:   # <-- Add this 'devices' section under reservations
+          memory: 1G # Your existing reservations
+          devices:   # <-- Add this 'devices' section
             - driver: nvidia
-              # --- CHOOSE ONE of the following ways to specify GPUs ---
-              # Option 1: Assign GPU by Index (most common for single GPU)
+              # --- CHOOSE ONE ---
+              # Option 1: Assign by Index (your GPU is index 0)
               device_ids: ['0']
 
-              # Option 2: Assign a specific number of GPUs (e.g., 1)
-              # count: 1
+              # Option 2: Assign by UUID (your GPU's UUID)
+              # device_ids: ['GPU-382ea995-5bca-c995-d5f0-7264a760ca32']
 
-              # Option 3: Assign all available GPUs
+              # Option 3: Assign all GPUs
               # count: all
-
-              # Option 4: Assign GPU by UUID (find with nvidia-smi -L on host)
-              # device_ids: ['GPU-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx']
-              # ---------------------------------------------------------
-              capabilities: [gpu] # <-- Essential: Request the 'gpu' capability
+              # ------------------
+              capabilities: [gpu] # <-- Explicitly request 'gpu' capability
 
 networks:
   devdocs-network:
