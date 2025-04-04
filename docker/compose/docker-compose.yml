@@ -52,42 +52,6 @@ services:
     tty: true  # Allocate a pseudo-TTY
     restart: unless-stopped
 
-  crawl4ai:
-    image: unclecode/crawl4ai:gpu-amd64 # Ensure this image supports GPU
-    container_name: devdocs-crawl4ai
-    ports:
-      - "11235:11235"
-    environment:
-      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-devdocs-demo-key}
-      - MAX_CONCURRENT_TASKS=5 # Adjust based on GPU
-      - DISABLE_AUTH=false
-      # Add any specific environment variables needed for GPU use by crawl4ai
-    volumes:
-      - /dev/shm:/dev/shm
-      - ./crawl_results:/app/crawl_results
-    networks:
-      - devdocs-network
-    restart: unless-stopped
-    deploy: # <-- This whole 'deploy' block is crucial for GPU access
-      resources:
-        limits:
-          memory: 4G # Your existing limits
-        reservations:
-          memory: 1G # Your existing reservations
-          devices:   # <-- Add this 'devices' section
-            - driver: nvidia
-              # --- CHOOSE ONE ---
-              # Option 1: Assign by Index (your GPU is index 0)
-              #device_ids: ['0']
-
-              # Option 2: Assign by UUID (your GPU's UUID)
-              device_ids: ['GPU-382ea995-5bca-c995-d5f0-7264a760ca32']
-
-              # Option 3: Assign all GPUs
-              # count: all
-              # ------------------
-              capabilities: [gpu] # <-- Explicitly request 'gpu' capability
-
 networks:
   devdocs-network:
     driver: bridge
