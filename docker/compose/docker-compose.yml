@@ -53,16 +53,19 @@ services:
     restart: unless-stopped
 
   crawl4ai:
+    # IMPORTANT: Make sure you are using an image tag that supports GPU
+    # 'gpu-amd64' looks correct based on the name, assuming it exists and is built with CUDA support.
     image: unclecode/crawl4ai:gpu-amd64
     container_name: devdocs-crawl4ai
     ports:
       - "11235:11235"
     environment:
       - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-devdocs-demo-key}
-      - MAX_CONCURRENT_TASKS=5
+      - MAX_CONCURRENT_TASKS=5 # You might adjust this based on your GPU's capacity
       - DISABLE_AUTH=false
+      # Add any GPU-specific environment variables if required by crawl4ai
     volumes:
-      - /dev/shm:/dev/shm
+      - /dev/shm:/dev/shm # Often useful for GPU workloads
       - ./crawl_results:/app/crawl_results
     networks:
       - devdocs-network
@@ -70,9 +73,25 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 4G # Keep existing memory limits
         reservations:
-          memory: 1G
+          memory: 1G # Keep existing memory reservations
+          devices:   # <-- Add this 'devices' section under reservations
+            - driver: nvidia
+              # --- CHOOSE ONE of the following ways to specify GPUs ---
+              # Option 1: Assign GPU by Index (most common for single GPU)
+              device_ids: ['0']
+
+              # Option 2: Assign a specific number of GPUs (e.g., 1)
+              # count: 1
+
+              # Option 3: Assign all available GPUs
+              # count: all
+
+              # Option 4: Assign GPU by UUID (find with nvidia-smi -L on host)
+              # device_ids: ['GPU-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx']
+              # ---------------------------------------------------------
+              capabilities: [gpu] # <-- Essential: Request the 'gpu' capability
 
 networks:
   devdocs-network:
