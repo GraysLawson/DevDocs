@@ -78,10 +78,10 @@ services:
             - driver: nvidia
               # --- CHOOSE ONE ---
               # Option 1: Assign by Index (your GPU is index 0)
-              device_ids: ['0']
+              #device_ids: ['0']
 
               # Option 2: Assign by UUID (your GPU's UUID)
-              # device_ids: ['GPU-382ea995-5bca-c995-d5f0-7264a760ca32']
+              device_ids: ['GPU-382ea995-5bca-c995-d5f0-7264a760ca32']
 
               # Option 3: Assign all GPUs
               # count: all
